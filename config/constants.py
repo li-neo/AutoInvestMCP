@@ -1,0 +1,65 @@
+"""
+常量定义文件，包含系统中使用的各种常量
+"""
+
+# 时间相关常量
+SECONDS_IN_DAY = 86400
+TRADING_DAYS_PER_YEAR = 252
+
+# 市场类型
+MARKET_TYPE_A_SHARE = "A股"
+MARKET_TYPE_US = "美股"
+MARKET_TYPE_HK = "港股"
+MARKET_TYPE_CRYPTO = "加密货币"
+
+# 周期设置
+TIMEFRAME_1M = "1m"
+TIMEFRAME_5M = "5m"
+TIMEFRAME_15M = "15m"
+TIMEFRAME_30M = "30m"
+TIMEFRAME_1H = "1h"
+TIMEFRAME_4H = "4h"
+TIMEFRAME_1D = "1d"
+TIMEFRAME_1W = "1w"
+
+# 交易方向
+DIRECTION_LONG = "long"
+DIRECTION_SHORT = "short"
+
+# 订单类型
+ORDER_TYPE_MARKET = "market"
+ORDER_TYPE_LIMIT = "limit"
+ORDER_TYPE_STOP = "stop"
+ORDER_TYPE_STOP_LIMIT = "stop_limit"
+
+# 命令类型
+CMD_ANALYZE = "analyze"
+CMD_SCREEN = "screen"
+CMD_TRADE = "trade"
+CMD_BACKTEST = "backtest"
+CMD_MONITOR = "monitor"
+
+# 技术指标
+INDICATOR_MA = "ma"
+INDICATOR_EMA = "ema"
+INDICATOR_MACD = "macd"
+INDICATOR_RSI = "rsi"
+INDICATOR_BOLLINGER = "bollinger"
+INDICATOR_KDJ = "kdj"
+INDICATOR_VOLUME = "volume"
+
+# 策略名称
+STRATEGY_MACD_CROSS = "macd_cross"
+STRATEGY_MA_CROSS = "ma_cross"
+STRATEGY_RSI_OVERBOUGHT = "rsi_overbought"
+STRATEGY_BREAKOUT = "breakout"
+STRATEGY_GRID = "grid"
+STRATEGY_MARTINGALE = "martingale"
+
+# API请求错误代码
+ERROR_API_KEY_INVALID = 1001
+ERROR_API_REQUEST_LIMIT = 1002
+ERROR_API_CONNECTION = 1003
+
+# NLP模型类型
+NLP_MODEL_DEEPSEEK = "deepseek"
