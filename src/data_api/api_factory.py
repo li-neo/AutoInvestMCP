@@ -4,12 +4,15 @@ API工厂模块，用于创建和管理不同的数据API实例
 import os
 import json
 from typing import Dict, Optional
+from dotenv import load_dotenv
 
 from src.data_api.base_api import BaseAPI
 from src.data_api.binance_api import BinanceAPI
 from src.data_api.futu_api import FutuAPI
 from config.constants import MARKET_TYPE_CRYPTO, MARKET_TYPE_HK, MARKET_TYPE_US, MARKET_TYPE_A_SHARE
 
+# 加载环境变量
+load_dotenv()
 
 class APIFactory:
     """API工厂类，用于创建和管理不同的数据API实例"""
@@ -78,7 +81,12 @@ class APIFactory:
             BinanceAPI: 币安API实例，如果创建失败则返回None
         """
         try:
-            api = BinanceAPI(config_path=self.config_path)
+            # 优先使用环境变量中的API密钥
+            api_key = os.environ.get('BINANCE_API_KEY')
+            api_secret = os.environ.get('BINANCE_API_SECRET')
+            
+            # 使用环境变量或配置文件创建API实例
+            api = BinanceAPI(api_key=api_key, api_secret=api_secret, config_path=self.config_path)
             if api.connect():
                 return api
             return None
@@ -99,8 +107,16 @@ class APIFactory:
             # 如果没有指定市场，默认使用港股
             if not market:
                 market = MARKET_TYPE_HK
+            
+            # 创建富途API的配置
+            config = {
+                'host': os.environ.get('FUTU_HOST', self.config.get('api', {}).get('futu', {}).get('host', '127.0.0.1')),
+                'port': int(os.environ.get('FUTU_PORT', self.config.get('api', {}).get('futu', {}).get('port', 11111))),
+                'trd_env': int(os.environ.get('FUTU_TRD_ENV', self.config.get('api', {}).get('futu', {}).get('trd_env', 0))),
+                'acc_id': os.environ.get('FUTU_ACC_ID', self.config.get('api', {}).get('futu', {}).get('acc_id'))
+            }
                 
-            api = FutuAPI(config_path=self.config_path, market=market)
+            api = FutuAPI(config=config)
             if api.connect():
                 return api
             return None

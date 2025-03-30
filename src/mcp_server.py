@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 
 from src.mcp_handler import MCPHandler
@@ -83,6 +84,71 @@ def get_mcp_handler():
 
 
 # API路由
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """首页
+    
+    Returns:
+        str: HTML页面
+    """
+    return """
+    <html>
+        <head>
+            <title>AutoInvestAI - SpaceExploreAI</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    line-height: 1.6;
+                }
+                h1 {
+                    color: #2c3e50;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 10px;
+                }
+                .api-section {
+                    background-color: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                }
+                code {
+                    background-color: #f1f1f1;
+                    padding: 2px 4px;
+                    border-radius: 3px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>AutoInvestAI - 智能投资助手</h1>
+            <p>欢迎使用AutoInvestAI智能投资助手。这是一个基于AI的投资分析和交易工具。</p>
+            
+            <div class="api-section">
+                <h2>API接口</h2>
+                <p>您可以通过以下API接口与系统交互：</p>
+                <ul>
+                    <li><code>POST /api/query</code> - 处理投资相关查询</li>
+                    <li><code>GET /api/health</code> - 服务健康检查</li>
+                </ul>
+                <p>访问 <a href="/docs">/docs</a> 查看完整的API文档。</p>
+            </div>
+            
+            <p>版本: 1.0.0</p>
+        </body>
+    </html>
+    """
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Favicon处理
+    
+    Returns:
+        Response: 空响应
+    """
+    return Response(content="", media_type="image/x-icon")
+
 @app.post("/api/query", response_model=MCPResponse)
 async def process_query(request: MCPRequest, handler: MCPHandler = Depends(get_mcp_handler)):
     """处理用户查询
@@ -97,13 +163,16 @@ async def process_query(request: MCPRequest, handler: MCPHandler = Depends(get_m
     try:
         # 处理请求
         result = handler.process_request(request.query)
-        
-        return {
+
+        results = {
             "success": result.get("success", False),
             "message": result.get("message", "处理完成"),
             "data": result.get("data"),
             "query": request.query
         }
+
+        logging.info(f"处理查询结果: {results}")
+        return results
     except Exception as e:
         logging.error(f"处理查询出错: {e}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -32,6 +32,10 @@ ORDER_TYPE_LIMIT = "limit"
 ORDER_TYPE_STOP = "stop"
 ORDER_TYPE_STOP_LIMIT = "stop_limit"
 
+# 订单买卖方向
+ORDER_SIDE_BUY = "buy"
+ORDER_SIDE_SELL = "sell"
+
 # 命令类型
 CMD_ANALYZE = "analyze"
 CMD_SCREEN = "screen"

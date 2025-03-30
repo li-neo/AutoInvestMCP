@@ -11,8 +11,13 @@
       "port": 11111
     }
   },
-  "deepseek": {
-    "api_key": "your_deepseek_api_key"
+  "nlp": {
+    "deepseek": {
+      "api_key": "your_deepseek_api_key"
+    },
+    "openai": {
+      "api_key": "your_openai_api_key"
+    }
   },
   "server": {
     "host": "0.0.0.0",

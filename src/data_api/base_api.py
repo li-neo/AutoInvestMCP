@@ -105,3 +105,113 @@ class BaseAPI(ABC):
             Dict: 账户信息，包括余额等
         """
         pass
+
+
+class BaseDataAPI(BaseAPI):
+    """数据API的基本实现，可以被具体的API实现继承"""
+    
+    def __init__(self):
+        """初始化BaseDataAPI"""
+        pass
+    
+    def connect(self) -> bool:
+        """连接到API服务，基本实现返回True
+        
+        Returns:
+            bool: 连接是否成功
+        """
+        return True
+    
+    def get_market_data(self, symbol: str, timeframe: str, limit: int = 100) -> pd.DataFrame:
+        """获取市场行情数据，基本实现调用get_kline_data
+        
+        Args:
+            symbol: 交易对/股票代码
+            timeframe: 时间周期
+            limit: 获取的K线数量
+            
+        Returns:
+            pandas.DataFrame: 市场数据，包含OHLCV等信息
+        """
+        return self.get_kline_data(symbol, timeframe, limit)
+    
+    def get_kline_data(self, symbol: str, timeframe: str, limit: int = 100) -> pd.DataFrame:
+        """获取K线数据，子类需实现此方法
+        
+        Args:
+            symbol: 交易对/股票代码
+            timeframe: 时间周期
+            limit: 获取的K线数量
+            
+        Returns:
+            pandas.DataFrame: K线数据
+        """
+        return pd.DataFrame()
+    
+    def get_ticker_info(self, symbol: str) -> Dict[str, Any]:
+        """获取交易对/股票的基本信息
+        
+        Args:
+            symbol: 交易对/股票代码
+            
+        Returns:
+            Dict: 包含交易对/股票基本信息的字典
+        """
+        return {}
+    
+    def get_symbols(self, market: Optional[str] = None) -> List[str]:
+        """获取可交易的所有交易对/股票
+        
+        Args:
+            market: 可选，指定市场
+            
+        Returns:
+            List[str]: 交易对/股票代码列表
+        """
+        return []
+    
+    def place_order(self, symbol: str, order_type: str, side: str, 
+                   amount: float, price: Optional[float] = None) -> Dict[str, Any]:
+        """下单交易
+        
+        Args:
+            symbol: 交易对/股票代码
+            order_type: 订单类型，如market、limit等
+            side: 交易方向，buy或sell
+            amount: 交易数量
+            price: 交易价格，对于市价单可为None
+            
+        Returns:
+            Dict: 订单信息
+        """
+        return {}
+    
+    def get_order_status(self, order_id: str) -> Dict[str, Any]:
+        """查询订单状态
+        
+        Args:
+            order_id: 订单ID
+            
+        Returns:
+            Dict: 订单状态信息
+        """
+        return {}
+    
+    def cancel_order(self, order_id: str) -> bool:
+        """取消订单
+        
+        Args:
+            order_id: 订单ID
+            
+        Returns:
+            bool: 取消是否成功
+        """
+        return False
+    
+    def get_account_info(self) -> Dict[str, Any]:
+        """获取账户信息
+        
+        Returns:
+            Dict: 账户信息，包括余额等
+        """
+        return {}

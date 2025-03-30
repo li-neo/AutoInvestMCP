@@ -8,6 +8,7 @@ from typing import Dict, List, Any, Optional
 import pandas as pd
 from binance.client import Client
 from binance.exceptions import BinanceAPIException, BinanceRequestException
+from dotenv import load_dotenv
 
 from src.data_api.base_api import BaseAPI
 from config.constants import (
@@ -15,6 +16,8 @@ from config.constants import (
     TIMEFRAME_1H, TIMEFRAME_4H, TIMEFRAME_1D, TIMEFRAME_1W
 )
 
+# 加载环境变量
+load_dotenv()
 
 class BinanceAPI(BaseAPI):
     """币安API实现类"""
@@ -44,8 +47,15 @@ class BinanceAPI(BaseAPI):
         self.api_secret = api_secret
         self.config_path = config_path
         
-        # 如果没有提供API密钥，尝试从配置文件读取
-        if (not api_key or not api_secret) and config_path:
+        # 首先尝试从环境变量读取API密钥
+        if not self.api_key:
+            self.api_key = os.environ.get('BINANCE_API_KEY')
+        
+        if not self.api_secret:
+            self.api_secret = os.environ.get('BINANCE_API_SECRET')
+        
+        # 如果环境变量中没有，尝试从配置文件读取
+        if (not self.api_key or not self.api_secret) and config_path:
             self._load_config(config_path)
     
     def _load_config(self, config_path: str):
@@ -57,8 +67,11 @@ class BinanceAPI(BaseAPI):
         try:
             with open(config_path, 'r') as f:
                 config = json.load(f)
-                self.api_key = config.get('api', {}).get('binance', {}).get('api_key')
-                self.api_secret = config.get('api', {}).get('binance', {}).get('api_secret')
+                # 只有在环境变量中未设置的情况下，才从配置文件加载
+                if not self.api_key:
+                    self.api_key = config.get('api', {}).get('binance', {}).get('api_key')
+                if not self.api_secret:
+                    self.api_secret = config.get('api', {}).get('binance', {}).get('api_secret')
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"加载配置文件失败: {e}")
     

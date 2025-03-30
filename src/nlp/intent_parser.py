@@ -293,12 +293,12 @@ class IntentParser:
         result = {
             "original_text": text,
             "command_type": llm_result.get("command_type", command_type),
-            "market": llm_result.get("market", market),
-            "timeframe": llm_result.get("timeframe", timeframe),
-            "indicators": llm_result.get("indicators", indicators),
-            "strategies": llm_result.get("strategies", strategies),
-            "symbols": llm_result.get("symbols", symbols) or symbols,  # 确保有符号
-            "parameters": {**parameters, **llm_result.get("parameters", {})}
+            "market": llm_result.get("market_type", market),
+            "timeframe": llm_result.get("time_period", timeframe),
+            "indicators": llm_result.get("technical_indicators", indicators),
+            "strategies": llm_result.get("trading_strategy", strategies),
+            "symbols": llm_result.get("stock_code", symbols) or symbols,  # 确保有符号
+            "parameters": {**parameters, **llm_result.get("other_parameters", {})}
         }
         
         return result

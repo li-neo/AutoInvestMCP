@@ -71,6 +71,12 @@ class MCPHandler:
                     'message': f"不支持的命令类型: {command_type}",
                     'data': None
                 }
+
+            result = {
+                'success': True,
+                'message': "处理完成",
+                'data': parsed_intent
+            }
             
             return result
         

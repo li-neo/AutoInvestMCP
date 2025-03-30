@@ -83,14 +83,35 @@ def start_client():
         print(f"启动客户端失败: {e}")
 
 
+def start_gui_client(share=False):
+    """启动图形界面客户端"""
+    print("正在启动图形界面客户端...")
+    
+    # 客户端脚本路径
+    client_path = os.path.join(ROOT_DIR, "gui_client.py")
+    
+    try:
+        # 启动客户端
+        cmd = [sys.executable, client_path]
+        if share:
+            cmd.append("--share")
+        subprocess.run(cmd)
+    except KeyboardInterrupt:
+        print("\n客户端已退出。")
+    except Exception as e:
+        print(f"启动客户端失败: {e}")
+
+
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(description="AutoInvestAI服务启动脚本")
     parser.add_argument("--install", action="store_true", help="安装依赖")
     parser.add_argument("--test", action="store_true", help="运行测试")
     parser.add_argument("--client", action="store_true", help="启动命令行客户端")
+    parser.add_argument("--gui", action="store_true", help="启动图形界面客户端")
     parser.add_argument("--host", default="0.0.0.0", help="服务主机地址")
     parser.add_argument("--port", type=int, default=8000, help="服务端口")
+    parser.add_argument("--share", action="store_true", help="创建公开链接(仅GUI客户端)")
     
     args = parser.parse_args()
     
@@ -104,9 +125,14 @@ def main():
         if not run_tests():
             return
     
-    # 启动客户端
+    # 启动命令行客户端
     if args.client:
         start_client()
+        return
+    
+    # 启动图形界面客户端
+    if args.gui:
+        start_gui_client(args.share)
         return
     
     # 启动服务器(默认操作)
@@ -115,3 +141,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    """
+    python run.py --install   安装依赖
+    python run.py --test      运行单元测试
+    python run.py             启动服务器
+    python client.py         启动命令行客户端
+    """

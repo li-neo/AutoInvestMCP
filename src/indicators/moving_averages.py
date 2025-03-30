@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional, List
 
-from src.indicators.indicator_base import MovingAverageBase
+from src.indicators.indicator_base import MovingAverageBase, IndicatorBase
 
 
 class SimpleMovingAverage(MovingAverageBase):

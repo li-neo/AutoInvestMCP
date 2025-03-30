@@ -43,3 +43,12 @@ AutoInvestAI/
 ## 开发与测试
 
 每个模块都提供了独立的测试脚本，位于tests/目录下，可以通过`pytest`运行所有测试。
+
+
+## 环境变量
+BINANCE_API_KEY=您的币安API密钥
+BINANCE_API_SECRET=您的币安API密钥Secret
+FUTU_HOST=127.0.0.1
+FUTU_PORT=11111
+FUTU_TRD_ENV=0
+FUTU_ACC_ID=FUTU AccountID

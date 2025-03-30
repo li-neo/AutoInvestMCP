@@ -96,7 +96,7 @@ class MovingAverageBase(IndicatorBase):
             # 确保短期指标已经计算
             if short_column not in data.columns:
                 # 临时创建短期指标并计算
-                temp_indicator = self.__class__(self.name, short_window, self.price_key)
+                temp_indicator = self.__class__(window=short_window, price_key=self.price_key)
                 data = temp_indicator.calculate(data)
             
             # 计算交叉信号
