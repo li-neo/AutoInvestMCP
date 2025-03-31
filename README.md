@@ -2,6 +2,10 @@
 
 AutoInvestAI是一个基于MCP (Multi-Component Processing)服务架构的智能投资助手，支持通过自然语言提出交易想法，并执行各种金融分析和交易功能。
 
+## GUI
+
+![AutoInvestMCP](doc/GUI.png "AutoInvestMCP-GUI")
+
 ## 主要功能
 
 - 自然语言处理：理解中文交易想法并转化为具体操作
