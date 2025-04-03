@@ -150,8 +150,10 @@ class MCPHandler:
                 # 计算技术指标
                 indicator_configs = []
                 for ind in indicators:
+                    # 将指标名称转换为小写，以匹配指标工厂中的定义
+                    ind_type = ind.lower()
                     indicator_configs.append({
-                        'type': ind,
+                        'type': ind_type,
                         'params': {}  # 使用默认参数
                     })
                 
@@ -171,7 +173,9 @@ class MCPHandler:
                 
                 # 添加指标信息
                 for ind in indicators:
-                    ind_columns = [col for col in market_data.columns if col.startswith(ind)]
+                    # 使用小写的指标名称查找指标列
+                    ind_type = ind.lower()
+                    ind_columns = [col for col in market_data.columns if col.startswith(ind_type)]
                     if ind_columns:
                         symbol_result['indicators'][ind] = {
                             col: float(market_data[col].iloc[-1]) for col in ind_columns
@@ -246,8 +250,10 @@ class MCPHandler:
                     # 应用技术指标
                     indicator_configs = []
                     for ind in indicators:
+                        # 将指标名称转换为小写，以匹配指标工厂中的定义
+                        ind_type = ind.lower()
                         indicator_configs.append({
-                            'type': ind,
+                            'type': ind_type,
                             'params': {}  # 使用默认参数
                         })
                     

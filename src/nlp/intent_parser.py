@@ -237,14 +237,26 @@ class IntentParser:
         messages = [
             {"role": "system", "content": """你是一个金融交易助手，能够理解用户的投资和交易意图。
 请分析用户的输入，提取以下信息：
-1. 命令类型：分析(analyze)、筛选(screen)、交易(trade)、回测(backtest)或监控(monitor)
-2. 市场类型：A股、港股、美股或加密货币
+1. 命令类型command_type：分析(analyze)、筛选(screen)、交易(trade)、回测(backtest)或监控(monitor)
+2. 市场类型market_type：A股、港股、美股或加密货币
+3. 市场类型
 3. 股票代码或加密货币代码（如有）
-4. 时间周期
-5. 技术指标（如有）
-6. 交易策略（如有）
+4. 时间周期：默认1d
+5. 技术指标：indicators（如有）
+6. 交易策略：（如有）
 7. 其他参数：如金额、百分比、天数等
-请按JSON格式返回，不要有任何其他回复。"""},
+请按JSON格式返回，不要有任何其他回复。
+回复格式示例：
+{ "command_type": "analyze",
+  "market_type": "港股",
+  "market": "HK",
+  "timeframe": "1d",
+  "indicators": "",
+  "strategies": ["MACD", "RSI"],
+  "symbols": ["00700"],
+  "stock":["腾讯"],
+  "parameters": {}
+}"""},
             {"role": "user", "content": text}
         ]
         
@@ -293,11 +305,13 @@ class IntentParser:
         result = {
             "original_text": text,
             "command_type": llm_result.get("command_type", command_type),
-            "market": llm_result.get("market_type", market),
-            "timeframe": llm_result.get("time_period", timeframe),
-            "indicators": llm_result.get("technical_indicators", indicators),
-            "strategies": llm_result.get("trading_strategy", strategies),
-            "symbols": llm_result.get("stock_code", symbols) or symbols,  # 确保有符号
+            "market": llm_result.get("market", market),
+            "market_type": llm_result.get("market_type", market),
+            "timeframe": llm_result.get("timeframe", timeframe),
+            "indicators": llm_result.get("indicators", indicators),
+            "strategies": llm_result.get("strategies", strategies),
+            "symbols": llm_result.get("symbols", symbols) or symbols,
+            "stock": llm_result.get("stock"), # 确保有符号
             "parameters": {**parameters, **llm_result.get("other_parameters", {})}
         }
         

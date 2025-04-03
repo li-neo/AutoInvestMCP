@@ -88,7 +88,7 @@ except ImportError:
             df = pd.DataFrame(data)
             return MockFutuAPI.RET_OK, df
             
-        def get_history_kline(self, code, start=None, end=None, ktype=None, max_count=1000):
+        def request_history_kline(self, code, start=None, end=None, ktype=None, max_count=1000):
             """获取历史K线数据"""
             # 生成模拟的K线数据
             now = datetime.now()
@@ -118,7 +118,8 @@ except ImportError:
             }
             
             df = pd.DataFrame(data)
-            return MockFutuAPI.RET_OK, df
+            # 返回3个值以模拟真实API
+            return MockFutuAPI.RET_OK, df, False
 
     class MockTradingContext:
         """模拟的交易上下文"""
@@ -248,25 +249,25 @@ class FutuAPI(BaseDataAPI):
         
     def _get_quote_ctx(self):
         """获取行情上下文"""
-        if self.quote_ctx is None or not self.quote_ctx.connected:
+        if self.quote_ctx is None:
             self.quote_ctx = ft.OpenQuoteContext(host=self.host, port=self.port)
         return self.quote_ctx
     
     def _get_hk_trade_ctx(self):
         """获取港股交易上下文"""
-        if self.trade_ctx_hk is None or not self.trade_ctx_hk.connected:
+        if self.trade_ctx_hk is None:
             self.trade_ctx_hk = ft.OpenHKTradeContext(host=self.host, port=self.port, trd_env=self.trd_env, acc_id=self.acc_id)
         return self.trade_ctx_hk
     
     def _get_us_trade_ctx(self):
         """获取美股交易上下文"""
-        if self.trade_ctx_us is None or not self.trade_ctx_us.connected:
+        if self.trade_ctx_us is None:
             self.trade_ctx_us = ft.OpenUSTradeContext(host=self.host, port=self.port, trd_env=self.trd_env, acc_id=self.acc_id)
         return self.trade_ctx_us
     
     def _get_cn_trade_ctx(self):
         """获取A股交易上下文"""
-        if self.trade_ctx_cn is None or not self.trade_ctx_cn.connected:
+        if self.trade_ctx_cn is None:
             self.trade_ctx_cn = ft.OpenCNTradeContext(host=self.host, port=self.port, trd_env=self.trd_env, acc_id=self.acc_id)
         return self.trade_ctx_cn
     
@@ -287,7 +288,7 @@ class FutuAPI(BaseDataAPI):
             '1h': ft.KLType.K_60M,
             '1d': ft.KLType.K_DAY,
             '1w': ft.KLType.K_WEEK,
-            '1M': ft.KLType.K_MONTH
+            '1M': ft.KLType.K_MON  # 修改这里，使用正确的月线枚举值
         }
         return ktype_map.get(timeframe, ft.KLType.K_DAY)
     
@@ -328,6 +329,9 @@ class FutuAPI(BaseDataAPI):
         Returns:
             str: 市场类型
         """
+        # 移除可能存在的前缀
+        clean_symbol = symbol.split('.')[-1].strip()
+        
         if symbol.startswith(('HK.', 'hk.')):
             return MARKET_TYPE_HK
         elif symbol.startswith(('US.', 'us.')):
@@ -335,18 +339,18 @@ class FutuAPI(BaseDataAPI):
         elif symbol.startswith(('SH.', 'sh.', 'SZ.', 'sz.')):
             return MARKET_TYPE_A_SHARE
         # 尝试根据代码格式猜测市场
-        elif symbol.isdigit():
-            if len(symbol) == 6:
+        elif clean_symbol.isdigit():
+            if len(clean_symbol) == 6:
                 # 假设是A股代码
-                if symbol.startswith(('6', '5', '9')):
+                if clean_symbol.startswith(('6', '5', '9')):
                     return MARKET_TYPE_A_SHARE
-                elif symbol.startswith(('0', '1', '2', '3')):
+                elif clean_symbol.startswith(('0', '1', '2', '3')):
                     return MARKET_TYPE_A_SHARE
-            elif len(symbol) == 5:
-                # 可能是港股代码
+            elif len(clean_symbol) == 5 or (len(clean_symbol) == 4 and clean_symbol.startswith('0')):
+                # 港股代码：5位数字，或者4位数字前导0
                 return MARKET_TYPE_HK
-        # 默认归为美股
-        return MARKET_TYPE_US
+        # 默认归为港股（因为腾讯是港股）
+        return MARKET_TYPE_HK
     
     def _format_symbol(self, symbol: str, market: Optional[str] = None) -> str:
         """格式化代码为富途API需要的格式
@@ -398,20 +402,25 @@ class FutuAPI(BaseDataAPI):
             pd.DataFrame: K线数据
         """
         try:
-            # 格式化代码
             formatted_symbol = self._format_symbol(symbol)
+            logging.info(f"请求K线数据，格式化后的代码: {formatted_symbol}, 时间周期: {timeframe}")
             
-            # 获取行情上下文
             quote_ctx = self._get_quote_ctx()
-            
-            # 转换时间周期
             ktype = self._convert_ktype(timeframe)
             
-            # 获取历史K线
-            ret, data = quote_ctx.get_history_kline(formatted_symbol, ktype=ktype, max_count=limit)
+            # 获取历史K线，富途API返回的是 (ret_code, data, if_req_data_forward)
+            result = quote_ctx.request_history_kline(formatted_symbol, ktype=ktype, max_count=limit)
             
-            if ret:
-                # 转换列名
+            # 根据返回值的个数解包
+            if len(result) == 2:
+                ret, data = result
+            elif len(result) == 3:
+                ret, data, _ = result
+            else:
+                logging.error(f"富途API返回值格式异常: {result}")
+                return pd.DataFrame()
+            
+            if ret == ft.RET_OK:
                 data = data.rename(columns={
                     'time_key': 'timestamp',
                     'open': 'open',
@@ -422,7 +431,6 @@ class FutuAPI(BaseDataAPI):
                     'turnover': 'turnover'
                 })
                 
-                # 设置索引
                 if 'timestamp' in data.columns:
                     data['timestamp'] = pd.to_datetime(data['timestamp'])
                     data = data.set_index('timestamp')
@@ -434,6 +442,8 @@ class FutuAPI(BaseDataAPI):
             
         except Exception as e:
             logging.error(f"获取K线数据异常: {e}")
+            import traceback
+            logging.error(traceback.format_exc())
             return pd.DataFrame()
     
     def get_ticker_info(self, symbol: str) -> Dict[str, Any]:
@@ -455,7 +465,7 @@ class FutuAPI(BaseDataAPI):
             # 获取快照数据
             ret, data = quote_ctx.get_market_snapshot([formatted_symbol])
             
-            if ret and not data.empty:
+            if ret == ft.RET_OK and not data.empty:
                 # 转换为字典
                 info = data.iloc[0].to_dict()
                 return info

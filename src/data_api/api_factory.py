@@ -133,6 +133,18 @@ class APIFactory:
         Returns:
             BaseAPI: 适合处理该交易对/股票的API实例
         """
+        # 为几个特殊股票代码预设市场
+        special_symbols = {
+            '00700': MARKET_TYPE_HK,  # 腾讯
+            '09988': MARKET_TYPE_HK,  # 阿里巴巴
+            '09999': MARKET_TYPE_HK,  # 网易
+            'BABA': MARKET_TYPE_US,   # 阿里巴巴ADR
+            'BIDU': MARKET_TYPE_US    # 百度
+        }
+        
+        if symbol in special_symbols:
+            return self.get_api('futu', special_symbols[symbol])
+        
         # 根据代码前缀判断市场
         if symbol.startswith(('HK.', 'HKEX.')):
             return self.get_api('futu', MARKET_TYPE_HK)
@@ -143,9 +155,19 @@ class APIFactory:
         elif '/' in symbol or symbol.endswith(('USDT', 'BTC', 'ETH')):
             return self.get_api('binance')
         else:
-            # 无法确定市场，尝试使用默认API
-            print(f"无法确定{symbol}的市场类型，尝试使用默认API")
-            return self.get_api('futu')
+            # 无法确定市场，根据代码规则判断
+            clean_symbol = symbol.strip()
+            if clean_symbol.isdigit():
+                if len(clean_symbol) == 5 or (len(clean_symbol) <= 5 and clean_symbol.startswith('0')):
+                    # 港股代码
+                    return self.get_api('futu', MARKET_TYPE_HK)
+                elif len(clean_symbol) == 6:
+                    # A股代码
+                    return self.get_api('futu', MARKET_TYPE_A_SHARE)
+            
+            # 其他情况默认为港股
+            print(f"无法确定{symbol}的市场类型，尝试使用港股API")
+            return self.get_api('futu', MARKET_TYPE_HK)
             
     def close_all(self):
         """关闭所有API连接"""
